@@ -1,8 +1,10 @@
 /// This test tests for main functionality.
-/// The app should start, wait 4 seconds and then gracefully quit
+/// The app should start, wait 2 seconds and then gracefully quit.
+/// The screen should be blue.
 use bevy::prelude::*;
 use bevy::app::AppExit;
-use quadify::prelude::*;
+use quadify::{prelude::*, render};
+use quadify::render::ClearColor;
 
 #[derive(Resource)]
 struct ExitTimer(Timer);
@@ -11,7 +13,8 @@ struct ExitTimer(Timer);
 fn main() {
     App::new()
         .add_plugins(QuadifyPlugins)
-        .insert_resource(ExitTimer(Timer::from_seconds(1.0, TimerMode::Once)))
+        .insert_resource(ExitTimer(Timer::from_seconds(2.0, TimerMode::Once)))
+        .insert_resource(ClearColor(render::color::BLUE))
         .add_systems(Update, run_timer)
         .run();
 }
