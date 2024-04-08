@@ -7,12 +7,15 @@ use bevy::{
     input::InputPlugin, log::LogPlugin, prelude::*, time::TimePlugin,
 };
 pub use macroquad;
+
+use render::MQRenderPlugin;
 use window::MQWindowPlugin; // Only import it if you actually need it
                             // use sprite::RenderingPlugin;
 
 // pub mod sprite;
 pub mod prelude;
 pub mod window;
+pub mod render;
 
 /// This collection of plugins is a custom made DefaultPlugins bundle
 pub struct QuadifyPlugins;
@@ -32,5 +35,6 @@ impl PluginGroup for QuadifyPlugins {
             .add(AccessibilityPlugin)
             // ? Custom Quadify Plugins. Planning to limit them by features
             .add(MQWindowPlugin::default())
+            .add(MQRenderPlugin)
     }
 }
