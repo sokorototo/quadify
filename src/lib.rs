@@ -6,18 +6,20 @@ use bevy::{
     a11y::AccessibilityPlugin, app::PluginGroupBuilder, diagnostic::DiagnosticsPlugin,
     input::InputPlugin, log::LogPlugin, prelude::*, time::TimePlugin,
 };
+use gizmos::MQGizmosPlugin;
 pub use macroquad;
 
+pub use macroquad::color;
 use render::MQRenderPlugin;
-use window::MQWindowPlugin; // Only import it if you actually need it
-                            // use sprite::RenderingPlugin;
+use window::MQWindowPlugin;
 
 // pub mod sprite;
 pub mod prelude;
 pub mod window;
+pub mod gizmos;
 pub mod render;
 
-/// This collection of plugins is a custom made DefaultPlugins bundle
+/// This collection of plugins is a custom made [`DefaultPlugins`] bundle.
 pub struct QuadifyPlugins;
 impl PluginGroup for QuadifyPlugins {
     fn build(self) -> PluginGroupBuilder {
@@ -36,5 +38,6 @@ impl PluginGroup for QuadifyPlugins {
             // ? Custom Quadify Plugins. Planning to limit them by features
             .add(MQWindowPlugin::default())
             .add(MQRenderPlugin)
+            .add(MQGizmosPlugin)
     }
 }
