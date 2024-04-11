@@ -6,6 +6,9 @@ use bevy::{app::AppExit, input::mouse::*, window::*};
 use quadify::prelude::*;
 
 #[derive(Resource)]
+struct ExitTimer(Timer);
+
+#[derive(Resource)]
 struct MouseInputReceived {
     pub button: bool,   // Checked from resource
     pub button_e: bool, // Checked from events
@@ -37,11 +40,12 @@ fn main() {
             }),
             ..Default::default()
         }))
+        .insert_resource(ExitTimer(Timer::from_seconds(10.0, TimerMode::Once)))
         .insert_resource(MouseInputReceived::default())
         .add_systems(Startup, init)
         .add_systems(
             Update,
-            (finish, mbuttons, mbuttons_e, mpos, mwheel, mmotion),
+            (finish, mbuttons, mbuttons_e, mpos, mwheel, mmotion, run_timer),
         )
         .run();
 }
@@ -49,6 +53,15 @@ fn main() {
 fn init() {
     info!("This is manual mouse test (for now).");
     info!("Just move, scroll and click your mouse.");
+    info!("This test will auto-fail after 10 seconds.");
+}
+
+fn run_timer(time: Res<Time>, mut timer: ResMut<ExitTimer>, mut exit_events: EventWriter<AppExit>) {
+    timer.0.tick(time.delta());
+    if timer.0.just_finished() {
+        exit_events.send(AppExit);
+        assert!(false); // The test ran out of time
+    }
 }
 
 fn finish(state: Res<MouseInputReceived>, mut exit: EventWriter<AppExit>) {

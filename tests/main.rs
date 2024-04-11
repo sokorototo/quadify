@@ -14,7 +14,7 @@ fn main() {
     App::new()
         .add_plugins(QuadifyPlugins)
         .insert_resource(ExitTimer(Timer::from_seconds(2.0, TimerMode::Once)))
-        .insert_resource(ClearColor(render::color::BLUE))
+        .insert_resource(ClearColor(quadify::color::BLUE))
         .add_systems(Update, run_timer)
         .run();
 }
