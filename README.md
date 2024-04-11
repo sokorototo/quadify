@@ -19,14 +19,13 @@ If you're doing simple web-games with 2D graphics - this might be suitable for y
 | quad_asset   | Really basic asset management | bevy_asset                     | ❔        | ❌   |
 | quad_sprite  | Sprite rendering              | bevy_sprite                    | ❔        | ❌   |
 | quad_text    | Text rendering                | bevy_text                      | ❔        | ❌   |
-| quad_ui      | GUI from macroquad            | bevy_ui                        | ❔        | ❌   |
+| quad_ui      | GUI from macroquad            | macroquad megaui               | ❔        | ❌   |
 | quad_audio   | Audio functionality           | bevy_audio                     | ❔        | ❌   |
 
 *This list was composed on my personal needs, if the project gains attention I'll maybe try to add other functionality as well (But with no bloat)*
 
-## Platform support
-
-I believe the platform support will be the same as macroquad's, so users might have to build their games using macroquad's instructions for each platform.
+*Note: I'm changing my mind about `quad_ui` in favor of using macroquad's `megaui`. The reason being the simplicity of immediate gui in general.
+megaui is a really lightweight version of egui, which is also very customizable and is already baked in.*
 
 ## Licensing
 
