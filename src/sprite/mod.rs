@@ -5,14 +5,6 @@ use bevy::prelude::*;
 use macroquad::prelude::*;
 use bevy::ecs::schedule::ScheduleLabel;
 
-#[derive(ScheduleLabel, Debug, Clone, PartialEq, Eq, Hash)]
-pub struct Render;
-// ? Actually perform drawing operations and wait for the next frame
-
-#[derive(ScheduleLabel, Debug, Clone, PartialEq, Eq, Hash)]
-pub struct PreRender;
-// ? Prepare objects, update their positions, etc.
-
 #[derive(Component)]
 pub struct SpriteTexture(Texture2D);
 
