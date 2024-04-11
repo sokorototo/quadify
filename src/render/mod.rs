@@ -5,17 +5,24 @@
 use bevy::prelude::*;
 use bevy::ecs::schedule::ScheduleLabel;
 use bevy::app::MainScheduleOrder;
-pub use macroquad::color;
+use macroquad::color;
+use macroquad::texture::Texture2D;
 use macroquad::window::clear_background; // ? Re-exporting it, since it's way simpler than the one bevy uses.
 
 mod camera;
 
 #[derive(ScheduleLabel, Debug, Clone, PartialEq, Eq, Hash)]
-pub struct Render;
-// ? Actually perform drawing operations and wait for the next frame
+pub struct RenderPrepare;
 
 #[derive(ScheduleLabel, Debug, Clone, PartialEq, Eq, Hash)]
-pub struct Extract;
+pub struct RenderSprites;
+
+#[derive(ScheduleLabel, Debug, Clone, PartialEq, Eq, Hash)]
+pub struct RenderGizmos;
+
+#[derive(ScheduleLabel, Debug, Clone, PartialEq, Eq, Hash)]
+pub struct RenderUI;
+// ? Actually perform drawing operations and wait for the next frame
 
 #[derive(Resource)]
 pub struct ClearColor(pub color::Color);
@@ -25,28 +32,33 @@ impl Default for ClearColor {
     }
 }
 
+#[derive(Component)]
+pub struct TextureHandle(Texture2D);
+
 pub struct MQRenderPlugin;
 impl Plugin for MQRenderPlugin {
     fn build(&self, app: &mut App) {
         app
-            .init_schedule(Extract)
-            .init_schedule(Render)
+            .init_schedule(RenderPrepare)
+            .init_schedule(RenderSprites)
+            .init_schedule(RenderGizmos)
+            .init_schedule(RenderUI)
             .init_resource::<ClearColor>();
         {
             let mut sched_order = app.world.resource_mut::<MainScheduleOrder>();
-            sched_order.insert_after(Last, Extract);
-            sched_order.insert_after(Extract, Render);
+            sched_order.insert_after(Last, RenderPrepare);
+            sched_order.insert_after(RenderPrepare, RenderSprites);
+            sched_order.insert_after(RenderSprites, RenderGizmos);
+            sched_order.insert_after(RenderGizmos, RenderUI);
         }
 
-        app.add_systems(Render, draw);
+        app.add_systems(RenderPrepare, draw_prepare);
     }
 }
 
-fn draw(w: &mut World) {
-    // ! I'm probably going to replace this with a global render system. 
-    // ! Clearing and drawing in separate threads is a bit useless.
+/// A global, exclusive draw system that draws everything (textures, gizmos, ui).
+/// Custom shaders can be made in the future.
+fn draw_prepare(w: &mut World) {
     let col = if let Some(col) = w.get_resource::<ClearColor>() { col.0 } else { color::BLACK };
     clear_background(col);
-
-    // * More operations later
 }
