@@ -86,8 +86,8 @@ impl<'w> Gizmos<'w> {
     }
 }
 
-pub struct MQGizmosPlugin;
-impl Plugin for MQGizmosPlugin {
+pub struct QuadGizmosPlugin;
+impl Plugin for QuadGizmosPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<GizmosCommands>()
             .init_resource::<GizmosConfig>()
