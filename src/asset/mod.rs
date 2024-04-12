@@ -18,6 +18,7 @@ use slotmap::{new_key_type, Key, SlotMap};
 
 // mod server;
 
+#[derive(Clone)]
 pub struct Handle<T>
 where T: Key {
     pub(crate) key:  T
@@ -57,8 +58,6 @@ pub(crate) enum AssetStatus<T> {
     Done(T),
     /// Something wrong went with the loading
     Failed,
-    /// Empty value. Just here for default handles
-    Null,
     /// Currently loads
     Loading
 }
@@ -131,17 +130,20 @@ impl<'w> Assets<'w>{
 }
 
 #[derive(Resource)]
-struct LoaderTimeLimit(u32);
+struct AssetSettings {
+    pub asset_path: String,
+    pub loader_time_limit: u32,
+}
 
 pub struct QuadAssetPlugin {
-    pub asset_path: String,
+    pub asset_path: &'static str,
     pub loader_time_limit: u32,
 }
 
 impl Default for QuadAssetPlugin {
     fn default() -> Self {
         Self {
-            asset_path: "".to_owned(),
+            asset_path: "",
             loader_time_limit: 4,
         }
     }
@@ -149,30 +151,37 @@ impl Default for QuadAssetPlugin {
 
 impl Plugin for QuadAssetPlugin {
     fn build(&self, app: &mut App) {
-        set_pc_assets_folder(&self.asset_path);
-
         app
             .init_resource::<AssetStorage>()
-            .insert_resource(LoaderTimeLimit(self.loader_time_limit))
+            .insert_resource(AssetSettings {
+                asset_path: self.asset_path.to_owned(),
+                loader_time_limit: self.loader_time_limit
+            })
+            .add_systems(PreStartup, init_assets)
             .add_systems(PreUpdate, load_assets)
         ;
     }
+}
+
+fn init_assets(settings: Res<AssetSettings>) {
+    set_pc_assets_folder(&settings.asset_path);
 }
 
 /// This system will try to load as many assets as possible in a span of **n** seconds. 
 /// 
 /// This number can be customized in the [`QuadAssetPlugin`].  
 fn load_assets(w: &mut World) {
-    let millis_limit = w.get_resource::<LoaderTimeLimit>().unwrap().0;
+    let millis_limit = w.get_resource::<AssetSettings>().unwrap().loader_time_limit;
     let mut store = w.get_resource_mut::<AssetStorage>().unwrap();
-    if store.to_process.len() == 0 {
-        return;
-    }
 
     let mut once = true; // Just to escape some bugs 
     let now = Instant::now();
     pollster::block_on(async {
-        while once || now.elapsed().as_millis() < millis_limit as u128 {
+        while once || (now.elapsed().as_millis() < millis_limit as u128) {
+            if store.to_process.len() < 1 {
+                break;
+            }
+
             once = false;
             match store.to_process.pop().unwrap() {
                 LoadCommandType::Texture(k, p) => {
@@ -183,7 +192,7 @@ fn load_assets(w: &mut World) {
                             AssetStatus::Failed
                         },
                     };
-                    store.textures.insert_with_key(|k| asset);
+                    store.textures[k] = asset;
                 },
                 LoadCommandType::Sound(k, p) => {
                     let asset = match load_sound(p).await {
@@ -193,7 +202,7 @@ fn load_assets(w: &mut World) {
                             AssetStatus::Failed
                         },
                     };
-                    store.sounds.insert_with_key(|k| asset);
+                    store.sounds[k] = asset;
                 },
                 LoadCommandType::Font(k, p) => {
                     let asset = match load_ttf_font(p).await {
@@ -203,7 +212,7 @@ fn load_assets(w: &mut World) {
                             AssetStatus::Failed
                         },
                     };
-                    store.fonts.insert_with_key(|k| asset);
+                    store.fonts[k] = asset;
                 },
                 LoadCommandType::Bytes(k, p) => {
                     let asset = match load_file(p).await {
@@ -213,7 +222,7 @@ fn load_assets(w: &mut World) {
                             AssetStatus::Failed
                         },
                     };
-                    store.bytes.insert_with_key(|k| asset);
+                    store.bytes[k] = asset;
                 }
             }
         }
