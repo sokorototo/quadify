@@ -12,6 +12,7 @@ pub use macroquad;
 
 pub use macroquad::color;
 use render::QuadRenderPlugin;
+use sprite::QuadSpritePlugin;
 use window::QuadWindowPlugin;
 
 // pub mod sprite;
@@ -43,5 +44,6 @@ impl PluginGroup for QuadifyPlugins {
             .add(QuadRenderPlugin)
             .add(QuadGizmosPlugin)
             .add(QuadAssetPlugin::default())
+            .add(QuadSpritePlugin)
     }
 }
