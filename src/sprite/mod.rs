@@ -2,15 +2,19 @@
 /// Don't be scared, because it's my first prototype. In the future I'm planning to change it.
 
 use bevy::prelude::*;
-use macroquad::prelude::*;
-use bevy::ecs::schedule::ScheduleLabel;
+use macroquad::math;
+use macroquad::texture::{draw_texture_ex, DrawTextureParams};
+// use macroquad::prelude::*;
+use crate::{asset::{AssetStatus, AssetStorage, Handle, TextureKey}, color::*, render::RenderSprites};
 
 #[derive(Component)]
-pub struct SpriteTexture(Texture2D);
+pub struct SpriteTexture(pub Handle<TextureKey>);
 
+/// Sprite color. Use [`WHITE`] if you don't want any changes.
 #[derive(Component)]
 pub struct SpriteColor(Color);
 
+/// Sprite flip parameter. To flip by `x` axis, by `y` or by both?
 #[derive(Component)]
 pub struct SpriteFlip {
     x: bool,
@@ -20,80 +24,105 @@ pub struct SpriteFlip {
 #[derive(Component)]
 pub struct SpriteSize(Vec2);
 
+/// Source rectangular area from the original texture
 #[derive(Component)]
 pub struct SpriteSrc {
     x: f32, y: f32,
     w: f32, h: f32
 }
-// ? Source rectangular area from the original texture
 
+/// Around what point to rotate this texture? (Screen space)
 #[derive(Component)]
 pub struct SpritePivot(Vec2);
-// ? Around what point to rotate this texture? (Screen space)
 
+/// An optional offset from target
 #[derive(Component)]
 pub struct SpriteOffset(Vec2);
-// ? An optional offset from target
 
+/// Simple sprite bundle, similar to bevy's `Sprite`
 #[derive(Bundle)]
 pub struct SpriteBundle {
-    transform: Transform,
-    texture: SpriteTexture,
-    color: SpriteColor,
-    flip: SpriteFlip
+    pub transform: TransformBundle,
+    pub texture: SpriteTexture,
+    pub color: SpriteColor,
+    pub flip: SpriteFlip
     // * Additional components can be added manually
 }
 
 impl Default for SpriteBundle {
     fn default() -> Self {
         Self {
-            transform: Transform::new(0.0, 0.0, 0.0),
-            texture: SpriteTexture(Texture2D::empty()),
+            transform: TransformBundle::default(),
+            texture: SpriteTexture(Handle::null()),
             color: SpriteColor(WHITE),
             flip: SpriteFlip { x: false, y: false }
         }
     }
 }
 
-pub struct RenderingPlugin;
-impl Plugin for RenderingPlugin {
+pub struct QuadSpritePlugin;
+impl Plugin for QuadSpritePlugin {
     fn build(&self, app: &mut App) {
-        app.init_schedule(Render)
-            .init_schedule(PreRender)
-            .add_systems(Render, batch_draw);
-
-        {
-            let mut sched_order = app.world.resource_mut::<MainScheduleOrder>();
-            sched_order.insert_after(Last, PreRender);
-            sched_order.insert_after(PreRender, Render);
-        }
+        app.add_systems(RenderSprites, batch_draw);
     }
 }
 
 type BatchComponents<'a> = (
-    &'a Transform, &'a SpriteTexture, &'a SpriteColor, &'a SpriteFlip,
+    &'a GlobalTransform, &'a SpriteTexture, &'a SpriteColor, &'a SpriteFlip,
     Option<&'a SpriteSize>, Option<&'a SpriteSrc>, Option<&'a SpritePivot>, Option<&'a SpriteOffset>
 );
+
+/// Just a massive draw call on all sprites. 
+/// 
+/// Honestly, should be replaced with its own sprite batching and pipeline.
 fn batch_draw(
-    render_targets: Query<BatchComponents>,
+    world: &mut World,
+    // render_targets: Query<BatchComponents>,
 ) {
-    let mut sprites: Vec<BatchComponents> = render_targets.iter().collect();
-    sprites.sort_by(|a, b| a.0.pos.z.partial_cmp(&b.0.pos.z).unwrap());
+    // Checking if the sprite has the loaded 
+    let mut sprites: Vec<BatchComponents> = world.query::<BatchComponents>()
+        .iter(world)
+        .collect();
+    sprites.sort_by(|a, b| 
+        a.0.translation().z.partial_cmp(&b.0.translation().z
+    ).unwrap());
+    let assets = world.get_resource::<AssetStorage>().unwrap();
+
     for (trns, texture, color, flip, size, src, pivot, offset) in sprites.iter() {
-        let offset = if let Some(o) = offset { o.0 } else { Vec2::ZERO };
-        draw_texture_ex(
-            &texture.0, 
-            trns.pos.x+offset.x, 
-            trns.pos.y+offset.y, 
-            color.0, 
-            DrawTextureParams {
-                dest_size: if let Some(s) = size { Some(s.0) } else { None },
-                source: if let Some(r) = src { Some(Rect::new(r.x, r.y, r.w, r.h)) } else { None },
-                rotation: trns.rot,
-                flip_x: flip.x,
-                flip_y: flip.y,
-                pivot: if let Some(p) = pivot { Some(p.0) } else { None }
-            }
-        )
+        let asset = assets.textures.get(texture.0.key);
+        if let Some(AssetStatus::Done(txtr)) = asset {
+            let offset = if let Some(o) = offset { o.0 } else { Vec2::ZERO };
+            let trns = trns.compute_transform();
+
+            let dest_size = if let Some(s) = size { 
+                math::Vec2 {
+                    x: s.0.x*trns.scale.x, 
+                    y: s.0.y*trns.scale.y
+                }
+            } else { 
+                math::Vec2 {
+                    x: txtr.width()*trns.scale.x, 
+                    y: txtr.height()*trns.scale.y
+                }
+            };
+
+            let source = if let Some(r) = src { Some(math::Rect::new(r.x, r.y, r.w, r.h)) } else { None };
+            let pivot =  if let Some(p) = pivot { Some(math::Vec2::new(p.0.x, p.0.y)) } else { None };
+
+            draw_texture_ex(
+                &txtr,
+                trns.translation.x+offset.x,
+                trns.translation.y+offset.y,
+                color.0, 
+                DrawTextureParams {
+                    dest_size: Some(dest_size),
+                    source,
+                    rotation: trns.rotation.x,
+                    flip_x: flip.x,
+                    flip_y: flip.y,
+                    pivot
+                }
+            )
+        }
     }
 }
