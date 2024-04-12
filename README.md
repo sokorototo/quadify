@@ -25,7 +25,8 @@ If you're doing simple web-games with 2D graphics - this might be suitable for y
 *This list was composed on my personal needs, if the project gains attention I'll maybe try to add other functionality as well (But with no bloat)*
 
 *Note: I'm changing my mind about `quad_ui` in favor of using macroquad's `megaui`. The reason being the simplicity of immediate gui in general.
-megaui is a really lightweight version of egui, which is also very customizable and is already baked in.*
+megaui is a really lightweight version of egui, which is also very customizable and is already baked in. Though, what's likely to happen is the
+combination of both.*
 
 ## Licensing
 
