@@ -9,17 +9,17 @@ mod converter;
 mod events;
 
 /// Macroquad window integration plugin (doesn't support multiple windows).
-pub struct MQWindowPlugin {
+pub struct QuadWindowPlugin {
     /// Macroquad's high-dpi option, for now with no use
-    _high_dpi: bool,
+    pub high_dpi: bool,
 }
-impl Default for MQWindowPlugin {
+impl Default for QuadWindowPlugin {
     fn default() -> Self {
-        Self { _high_dpi: false }
+        Self { high_dpi: false }
     }
 }
 
-impl Plugin for MQWindowPlugin {
+impl Plugin for QuadWindowPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(PreStartup, events::init_events)
             .add_systems(PreUpdate, events::get_events)

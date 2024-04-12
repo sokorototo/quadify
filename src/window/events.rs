@@ -12,7 +12,7 @@ use macroquad::{
     miniquad::EventHandler,
 };
 
-enum MQEvent {
+enum QuadEvent {
     CursorMotion(window::CursorMoved),
     MouseMotion(mouse::MouseMotion),
     MouseButton(mouse::MouseButtonInput),
@@ -24,7 +24,7 @@ enum MQEvent {
 }
 struct CollectedEvents {
     pub new_cursor_pos: Option<Vec2>,
-    pub events: Vec<MQEvent>,
+    pub events: Vec<QuadEvent>,
 }
 
 impl CollectedEvents {
@@ -47,14 +47,14 @@ impl CollectedEvents {
 
         for e in self.events.drain(..) {
             match e {
-                MQEvent::CursorMotion(x) => w.send_event(x),
-                MQEvent::Keyboard(x) => w.send_event(x),
-                MQEvent::MouseButton(x) => w.send_event(x),
-                MQEvent::MouseMotion(x) => w.send_event(x),
-                MQEvent::MouseWheel(x) => w.send_event(x),
-                MQEvent::Touch(x) => w.send_event(x),
-                MQEvent::Draw(x) => w.send_event(x),
-                MQEvent::Quit(x) => w.send_event(x),
+                QuadEvent::CursorMotion(x) => w.send_event(x),
+                QuadEvent::Keyboard(x) => w.send_event(x),
+                QuadEvent::MouseButton(x) => w.send_event(x),
+                QuadEvent::MouseMotion(x) => w.send_event(x),
+                QuadEvent::MouseWheel(x) => w.send_event(x),
+                QuadEvent::Touch(x) => w.send_event(x),
+                QuadEvent::Draw(x) => w.send_event(x),
+                QuadEvent::Quit(x) => w.send_event(x),
             };
         }
     }
@@ -87,7 +87,7 @@ impl EventHandler for EHandler {
     fn draw(&mut self) {
         self.collected
             .events
-            .push(MQEvent::Draw(window::RequestRedraw));
+            .push(QuadEvent::Draw(window::RequestRedraw));
     }
 
     fn mouse_motion_event(&mut self, x: f32, y: f32) {
@@ -99,14 +99,14 @@ impl EventHandler for EHandler {
         }
         self.collected
             .events
-            .push(MQEvent::CursorMotion(window::CursorMoved {
+            .push(QuadEvent::CursorMotion(window::CursorMoved {
                 window: self.window,
                 position: Vec2::new(mpos.0, mpos.1),
             }));
 
         self.collected
             .events
-            .push(MQEvent::MouseMotion(mouse::MouseMotion {
+            .push(QuadEvent::MouseMotion(mouse::MouseMotion {
                 delta: Vec2::new(x, y),
             }));
     }
@@ -119,7 +119,7 @@ impl EventHandler for EHandler {
     ) {
         self.collected
             .events
-            .push(MQEvent::Keyboard(keyboard::KeyboardInput {
+            .push(QuadEvent::Keyboard(keyboard::KeyboardInput {
                 window: self.window,
                 state: ButtonState::Pressed,
                 key_code: Some(mq_to_bevy_keycode(keycode)),
@@ -130,7 +130,7 @@ impl EventHandler for EHandler {
     fn key_up_event(&mut self, keycode: input::KeyCode, _keymods: macroquad::miniquad::KeyMods) {
         self.collected
             .events
-            .push(MQEvent::Keyboard(keyboard::KeyboardInput {
+            .push(QuadEvent::Keyboard(keyboard::KeyboardInput {
                 window: self.window,
                 state: ButtonState::Released,
                 key_code: Some(mq_to_bevy_keycode(keycode)),
@@ -141,7 +141,7 @@ impl EventHandler for EHandler {
     fn mouse_button_down_event(&mut self, btn: input::MouseButton, _x: f32, _y: f32) {
         self.collected
             .events
-            .push(MQEvent::MouseButton(mouse::MouseButtonInput {
+            .push(QuadEvent::MouseButton(mouse::MouseButtonInput {
                 window: self.window,
                 button: mq_to_bevy_mbtn(btn),
                 state: ButtonState::Pressed,
@@ -151,7 +151,7 @@ impl EventHandler for EHandler {
     fn mouse_button_up_event(&mut self, btn: input::MouseButton, _x: f32, _y: f32) {
         self.collected
             .events
-            .push(MQEvent::MouseButton(mouse::MouseButtonInput {
+            .push(QuadEvent::MouseButton(mouse::MouseButtonInput {
                 window: self.window,
                 button: mq_to_bevy_mbtn(btn),
                 state: ButtonState::Released,
@@ -161,7 +161,7 @@ impl EventHandler for EHandler {
     fn mouse_wheel_event(&mut self, x: f32, y: f32) {
         self.collected
             .events
-            .push(MQEvent::MouseWheel(mouse::MouseWheel {
+            .push(QuadEvent::MouseWheel(mouse::MouseWheel {
                 window: self.window,
                 unit: mouse::MouseScrollUnit::Pixel,
                 x,
@@ -170,13 +170,13 @@ impl EventHandler for EHandler {
     }
 
     fn quit_requested_event(&mut self) {
-        self.collected.events.push(MQEvent::Quit(AppExit));
+        self.collected.events.push(QuadEvent::Quit(AppExit));
     }
 
     fn touch_event(&mut self, _phase: macroquad::miniquad::TouchPhase, id: u64, x: f32, y: f32) {
         self.collected
             .events
-            .push(MQEvent::Touch(touch::TouchInput {
+            .push(QuadEvent::Touch(touch::TouchInput {
                 phase: mq_to_bevy_tch(_phase),
                 position: Vec2::new(x, y),
                 id,

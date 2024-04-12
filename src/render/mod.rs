@@ -9,7 +9,6 @@ use macroquad::color;
 use macroquad::window::clear_background; // ? Re-exporting it, since it's way simpler than the one bevy uses.
 
 mod camera;
-mod texture;
 
 #[derive(ScheduleLabel, Debug, Clone, PartialEq, Eq, Hash)]
 pub struct RenderPrepare;
