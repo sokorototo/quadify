@@ -6,10 +6,10 @@ use bevy::prelude::*;
 use bevy::ecs::schedule::ScheduleLabel;
 use bevy::app::MainScheduleOrder;
 use macroquad::color;
-use macroquad::texture::Texture2D;
 use macroquad::window::clear_background; // ? Re-exporting it, since it's way simpler than the one bevy uses.
 
 mod camera;
+mod texture;
 
 #[derive(ScheduleLabel, Debug, Clone, PartialEq, Eq, Hash)]
 pub struct RenderPrepare;
@@ -32,11 +32,8 @@ impl Default for ClearColor {
     }
 }
 
-#[derive(Component)]
-pub struct TextureHandle(Texture2D);
-
-pub struct MQRenderPlugin;
-impl Plugin for MQRenderPlugin {
+pub struct QuadRenderPlugin;
+impl Plugin for QuadRenderPlugin {
     fn build(&self, app: &mut App) {
         app
             .init_schedule(RenderPrepare)
