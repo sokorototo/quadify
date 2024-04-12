@@ -2,22 +2,25 @@
 // ! uses bevy's parallel processing plugin. Macroquad is designed to work on a single thread, thus
 // ! there needs to be some sort of isolation for ALL of its functionality.
 
+use asset::QuadAssetPlugin;
 use bevy::{
     a11y::AccessibilityPlugin, app::PluginGroupBuilder, diagnostic::DiagnosticsPlugin,
     input::InputPlugin, log::LogPlugin, prelude::*, time::TimePlugin,
 };
-use gizmos::MQGizmosPlugin;
+use gizmos::QuadGizmosPlugin;
 pub use macroquad;
 
 pub use macroquad::color;
-use render::MQRenderPlugin;
-use window::MQWindowPlugin;
+use render::QuadRenderPlugin;
+use window::QuadWindowPlugin;
 
 // pub mod sprite;
 pub mod prelude;
 pub mod window;
 pub mod gizmos;
 pub mod render;
+pub mod asset;
+pub mod sprite;
 
 /// This collection of plugins is a custom made [`DefaultPlugins`] bundle.
 pub struct QuadifyPlugins;
@@ -36,8 +39,9 @@ impl PluginGroup for QuadifyPlugins {
             .add(WindowPlugin::default())
             .add(AccessibilityPlugin)
             // ? Custom Quadify Plugins. Planning to limit them by features
-            .add(MQWindowPlugin::default())
-            .add(MQRenderPlugin)
-            .add(MQGizmosPlugin)
+            .add(QuadWindowPlugin::default())
+            .add(QuadRenderPlugin)
+            .add(QuadGizmosPlugin)
+            .add(QuadAssetPlugin::default())
     }
 }
