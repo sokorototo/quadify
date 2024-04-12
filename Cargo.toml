@@ -8,6 +8,7 @@ description = "Bevy plugin that integrates macroquad's windowing/rendering/sound
 keywords = ["bevy", "macroquad", "miniquad"]
 categories = ["game-engines"]
 readme = "README.md"
+ignore = ["assets"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
