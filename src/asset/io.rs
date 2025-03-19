@@ -4,15 +4,15 @@ use bevy_ecs::system::{NonSendMut, SystemParam};
 use miniquad::ShaderSource;
 use miniquad::TextureId;
 
-use crate::io::load_file_sync;
+use crate::io::load_file;
 use crate::prelude::material::{Material, MaterialParams};
 use crate::prelude::RenderingBackend;
 
 use super::Texture;
 
 /// Loads a texture and automatically pushes it to GPU.
-fn load_texture(path: impl Into<&'static str>, format: Option<image::ImageFormat>, backend: &mut RenderingBackend) -> Option<TextureId> {
-	let bytes = match load_file_sync(path.into()) {
+async fn load_texture(path: impl Into<&'static str>, format: Option<image::ImageFormat>, backend: &mut RenderingBackend) -> Option<TextureId> {
+	let bytes = match load_file(path.into()).await {
 		Ok(bytes) => bytes,
 		Err(err) => {
 			#[cfg(feature = "log")]
@@ -57,12 +57,8 @@ pub struct AssetIO<'w, 's> {
 }
 
 impl<'w, 's> AssetIO<'w, 's> {
-	pub fn load_bytes(&self, path: impl Into<&'static str>) -> Result<std::vec::Vec<u8>, miniquad::fs::Error> {
-		load_file_sync(path)
-	}
-
-	pub fn load_texture(&mut self, path: impl Into<&'static str>, format: Option<image::ImageFormat>) -> Option<Texture> {
-		match load_texture(path, format, &mut self.backend) {
+	pub async fn load_texture(&mut self, path: impl Into<&'static str>, format: Option<image::ImageFormat>) -> Option<Texture> {
+		match load_texture(path, format, &mut self.backend).await {
 			Some(texture) => Some(Texture::new(texture)),
 			None => None,
 		}

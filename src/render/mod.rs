@@ -289,9 +289,9 @@ impl RenderingBackend {
 	/// - Render pass
 	/// - Texture
 	/// - Draw mode
-	/// 
-	/// The new draw call will be allocated, if previous + new geometry exceeds the vertex or indices limit (`10000` and `5000`) 
-	/// 
+	///
+	/// The new draw call will be allocated, if previous + new geometry exceeds the vertex or indices limit (`10000` and `5000`)
+	///
 	/// You can manually allocate a new draw call by calling [`RenderingBackend::break_batching`]
 	pub fn geometry(&mut self, vertices: &[Vertex], indices: &[u16]) {
 		if vertices.len() >= self.max_vertices || indices.len() >= self.max_indices {
@@ -362,8 +362,8 @@ impl RenderingBackend {
 		dc.texture = self.state.texture;
 	}
 
-	/// Deletes the pipeline from the inner pipeline storage. 
-	/// 
+	/// Deletes the pipeline from the inner pipeline storage.
+	///
 	/// *Attention: using the same pipeline again will panic, or give unexpected results*
 	pub fn delete_pipeline(&mut self, pipeline: GlPipeline) {
 		self.pipelines.delete_pipeline(pipeline);
@@ -376,7 +376,7 @@ impl RenderingBackend {
 		self.pipelines.get_pipeline_mut(pipeline).set_uniform(name, uniform);
 	}
 
-	/// Prepare material for a draw call. Basically the same as [`RenderingBackend::pipeline`] 
+	/// Prepare material for a draw call. Basically the same as [`RenderingBackend::pipeline`]
 	pub fn set_material(&mut self, material: &Material) {
 		self.pipeline(Some(material.pipeline));
 	}
@@ -403,7 +403,7 @@ impl RenderingBackend {
 	}
 
 	/// Update the vertex/index limits of draw calls
-	/// 
+	///
 	/// *Note: It will resize all existing draw calls as well*
 	pub fn update_drawcall_capacity(&mut self, max_vertices: usize, max_indices: usize) {
 		self.max_vertices = max_vertices;
@@ -449,7 +449,7 @@ impl bevy_app::Plugin for RenderBackendPlugin {
 		if self.default_pipeline {
 			// Setup default camera
 			let camera = camera::Camera2D::default();
-			let id = app.world.spawn((camera, camera::RenderTarget::Window)).id();
+			let id = app.world_mut().spawn((camera, camera::RenderTarget::Window)).id();
 			// Setup the rendering backend
 			app.insert_resource(camera::CurrentCameraTag(id))
 				.init_resource::<ClearColor>()

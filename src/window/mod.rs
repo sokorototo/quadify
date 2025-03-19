@@ -77,6 +77,9 @@ impl Plugin for WindowPlugin {
 		// Init Resources, Events, and Systems
 		app.add_event::<events::WindowEvent>()
 			.add_event::<events::DroppedFileEvent>()
+			.add_event::<bevy_input::keyboard::KeyboardInput>()
+			.add_event::<bevy_input::mouse::MouseButtonInput>()
+			.add_event::<bevy_input::mouse::MouseMotion>()
 			.insert_resource(window_properties)
 			.insert_resource(state::AcceptQuitRequest(true))
 			.init_schedule(state::MiniquadPrepareDraw)

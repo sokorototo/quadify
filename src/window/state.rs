@@ -76,21 +76,21 @@ impl EventHandler for QuadifyState {
 
 	// Called on every frame if App has an active surface
 	fn draw(&mut self) {
-		self.app.world.run_schedule(MiniquadPrepareDraw);
-		self.app.world.run_schedule(MiniquadDraw);
+		self.app.world_mut().run_schedule(MiniquadPrepareDraw);
+		self.app.world_mut().run_schedule(MiniquadDraw);
 	}
 
 	// WM Events
 	fn window_minimized_event(&mut self) {
-		self.app.world.send_event(events::WindowEvent::Minimized);
+		self.app.world_mut().send_event(events::WindowEvent::Minimized);
 	}
 
 	fn window_restored_event(&mut self) {
-		self.app.world.send_event(events::WindowEvent::Restored);
+		self.app.world_mut().send_event(events::WindowEvent::Restored);
 	}
 
 	fn resize_event(&mut self, width: f32, height: f32) {
-		if let Some(mut props) = self.app.world.get_resource_mut::<events::WindowProperties>() {
+		if let Some(mut props) = self.app.world_mut().get_resource_mut::<events::WindowProperties>() {
 			// to avoid infinite looping once WindowProperties is applied to the miniquad::window
 			let props = props.bypass_change_detection();
 
@@ -98,12 +98,12 @@ impl EventHandler for QuadifyState {
 			props.height = height as u32;
 		}
 
-		self.app.world.send_event(events::WindowEvent::Resized { width, height });
+		self.app.world_mut().send_event(events::WindowEvent::Resized { width, height });
 	}
 
 	fn quit_requested_event(&mut self) -> bool {
-		self.app.world.run_schedule(MiniquadQuitRequestedSchedule);
-		self.app.world.resource::<AcceptQuitRequest>().0
+		self.app.world_mut().run_schedule(MiniquadQuitRequestedSchedule);
+		self.app.world_mut().resource::<AcceptQuitRequest>().0
 	}
 
 	// File Drag and Drop
@@ -121,13 +121,13 @@ impl EventHandler for QuadifyState {
 
 	// Mouse Events
 	fn mouse_button_down_event(&mut self, button: miniquad::MouseButton, _x: f32, _y: f32) {
-		self.app.world.send_event(bevy_input::mouse::MouseButtonInput {
+		self.app.world_mut().send_event(bevy_input::mouse::MouseButtonInput {
 			button: mq_to_bevy_mbtn(button),
 			state: ButtonState::Pressed,
 			window: self.window_entity,
 		});
 
-		self.app.world.run_schedule(MiniquadMouseDownSchedule);
+		self.app.world_mut().run_schedule(MiniquadMouseDownSchedule);
 	}
 
 	fn mouse_motion_event(&mut self, x: f32, y: f32) {
@@ -138,29 +138,29 @@ impl EventHandler for QuadifyState {
 		// only send mouse motion events if the mouse has moved
 		if current != *previous {
 			let delta = vec2(x, y) - *previous;
-			self.app.world.send_event(bevy_input::mouse::MouseMotion { delta });
+			self.app.world_mut().send_event(bevy_input::mouse::MouseMotion { delta });
 		}
 
-		if let Some(mut props) = self.app.world.get_resource_mut::<events::WindowProperties>() {
+		if let Some(mut props) = self.app.world_mut().get_resource_mut::<events::WindowProperties>() {
 			props.bypass_change_detection().cursor_position = current;
 		}
 
 		self.mouse_position = Some(current);
-		self.app.world.run_schedule(MiniquadMouseMotionSchedule);
+		self.app.world_mut().run_schedule(MiniquadMouseMotionSchedule);
 	}
 
 	fn mouse_button_up_event(&mut self, button: miniquad::MouseButton, _x: f32, _y: f32) {
-		self.app.world.send_event(bevy_input::mouse::MouseButtonInput {
+		self.app.world_mut().send_event(bevy_input::mouse::MouseButtonInput {
 			button: mq_to_bevy_mbtn(button),
 			state: ButtonState::Released,
 			window: self.window_entity,
 		});
 
-		self.app.world.run_schedule(MiniquadMouseDownSchedule);
+		self.app.world_mut().run_schedule(MiniquadMouseDownSchedule);
 	}
 
 	fn mouse_wheel_event(&mut self, x: f32, y: f32) {
-		self.app.world.send_event(bevy_input::mouse::MouseWheel {
+		self.app.world_mut().send_event(bevy_input::mouse::MouseWheel {
 			unit: MouseScrollUnit::Pixel,
 			x,
 			y,
@@ -170,7 +170,7 @@ impl EventHandler for QuadifyState {
 
 	// Touch Events
 	fn touch_event(&mut self, phase: miniquad::TouchPhase, id: u64, x: f32, y: f32) {
-		self.app.world.send_event(bevy_input::touch::TouchInput {
+		self.app.world_mut().send_event(bevy_input::touch::TouchInput {
 			phase: mq_to_bevy_tch(phase),
 			position: Vec2 { x, y },
 			id,
@@ -180,32 +180,35 @@ impl EventHandler for QuadifyState {
 	}
 
 	// Keyboard Events
-	fn char_event(&mut self, character: char, _mods: miniquad::KeyMods, _repeat: bool) {
-		self.app.world.send_event(bevy_input::keyboard::KeyboardInput {
+	fn char_event(&mut self, character: char, _mods: miniquad::KeyMods, repeat: bool) {
+		self.app.world_mut().send_event(bevy_input::keyboard::KeyboardInput {
 			key_code: KeyCode::Unidentified(NativeKeyCode::Unidentified),
 			state: ButtonState::Pressed, // ! Could be another bug, since the char state would always be `ButtonState::Pressed`
 			logical_key: mq_to_bevy_char(character),
 			window: self.window_entity,
+			repeat,
 		});
 	}
 
-	fn key_down_event(&mut self, keycode: miniquad::KeyCode, _mods: miniquad::KeyMods, _repeat: bool) {
-		self.app.world.send_event(bevy_input::keyboard::KeyboardInput {
+	fn key_down_event(&mut self, keycode: miniquad::KeyCode, _mods: miniquad::KeyMods, repeat: bool) {
+		self.app.world_mut().send_event(bevy_input::keyboard::KeyboardInput {
 			key_code: mq_to_bevy_keycode(keycode),
 			state: ButtonState::Pressed,
 			logical_key: mq_to_bevy_logical_key(keycode),
 			window: self.window_entity,
+			repeat,
 		});
 
-		self.app.world.run_schedule(MiniquadKeyDownSchedule);
+		self.app.world_mut().run_schedule(MiniquadKeyDownSchedule);
 	}
 
 	fn key_up_event(&mut self, keycode: miniquad::KeyCode, _mods: miniquad::KeyMods) {
-		self.app.world.send_event(bevy_input::keyboard::KeyboardInput {
+		self.app.world_mut().send_event(bevy_input::keyboard::KeyboardInput {
 			key_code: mq_to_bevy_keycode(keycode),
 			state: ButtonState::Released,
 			logical_key: mq_to_bevy_logical_key(keycode),
 			window: self.window_entity,
+			repeat: false,
 		});
 	}
 }

@@ -31,6 +31,7 @@ impl Texture {
 }
 
 pub struct AssetPlugin;
+
 impl Plugin for AssetPlugin {
 	fn build(&self, app: &mut bevy_app::App) {
 		app.add_plugins(BevyAssetPlugin::default())
