@@ -1,14 +1,15 @@
 use std::f32::consts::PI;
 
+use glam::{vec2, vec3, Quat, Vec2, Vec3};
+use miniquad::{VertexAttribute, VertexFormat};
+
 use bevy_asset::Asset;
 use bevy_reflect::Reflect;
-use glam::{vec2, vec3, Vec2, Vec3, Quat};
-use miniquad::{VertexAttribute, VertexFormat};
 
 use super::rgba::Rgba;
 
 #[repr(C)]
-#[derive(Clone, Debug, Copy, Reflect, PartialEq)]
+#[derive(Clone, Debug, Copy, PartialEq)]
 pub struct Vertex {
 	pub position: Vec3,
 	pub uv: Vec2,
@@ -30,7 +31,7 @@ impl Vertex {
 	}
 }
 
-#[derive(Asset, Clone, PartialEq, Reflect)]
+#[derive(Clone, PartialEq)]
 pub struct Mesh {
 	pub vertices: Vec<Vertex>,
 	pub indices: Vec<u16>,
@@ -42,10 +43,10 @@ impl Mesh {
 		let indices = vec![0, 1, 2, 1, 2, 3];
 		let (hw, hh) = (size.x / 2.0, size.y / 2.0);
 		let vertices = vec![
-			Vertex::new(vec3(pos.x-hw, pos.y+hh, pos.z), vec2(0.0, 0.0), color),  // top-left
-			Vertex::new(vec3(pos.x+hw, pos.y+hh, pos.z), vec2(1.0, 0.0), color),   // top-right
-			Vertex::new(vec3(pos.x-hw, pos.y-hh, pos.z), vec2(0.0, 1.0), color), // bottom-left
-			Vertex::new(vec3(pos.x+hw, pos.y-hh, pos.z), vec2(1.0, 1.0), color),  // bottom-right
+			Vertex::new(vec3(pos.x - hw, pos.y + hh, pos.z), vec2(0.0, 0.0), color), // top-left
+			Vertex::new(vec3(pos.x + hw, pos.y + hh, pos.z), vec2(1.0, 0.0), color), // top-right
+			Vertex::new(vec3(pos.x - hw, pos.y - hh, pos.z), vec2(0.0, 1.0), color), // bottom-left
+			Vertex::new(vec3(pos.x + hw, pos.y - hh, pos.z), vec2(1.0, 1.0), color), // bottom-right
 		];
 		Self { vertices, indices }
 	}
@@ -60,7 +61,7 @@ impl Mesh {
 		for i in 0..npoints {
 			let degrees = (i as f32) * circle_piece;
 			let (x, y) = (degrees.cos(), degrees.sin());
-			vertices.push(Vertex::new(vec3(pos.x+x*r, pos.y+y*r, pos.z), vec2(x, y), color));
+			vertices.push(Vertex::new(vec3(pos.x + x * r, pos.y + y * r, pos.z), vec2(x, y), color));
 
 			if i < npoints - 2 {
 				let i = i as u16;
@@ -85,46 +86,46 @@ impl Mesh {
 
 	/// Translates the vertex positions of the mesh by the given [`Vec3`].
 	pub fn translated_by(mut self, translation: Vec3) -> Self {
-        self.translate_by(translation);
-        self
-    }
+		self.translate_by(translation);
+		self
+	}
 
-    /// Translates the vertex positions of the mesh in place by the given [`Vec3`].
-    pub fn translate_by(&mut self, translation: Vec3) {
-        if translation == Vec3::ZERO {
-            return;
-        }
+	/// Translates the vertex positions of the mesh in place by the given [`Vec3`].
+	pub fn translate_by(&mut self, translation: Vec3) {
+		if translation == Vec3::ZERO {
+			return;
+		}
 
 		for vert in self.vertices.iter_mut() {
 			vert.position += translation;
 		}
-    }
+	}
 
 	/// Rotates the vertex positions of the mesh by the given [`Quat`].
-    pub fn rotated_by(mut self, rotation: Quat) -> Self {
-        self.rotate_by(rotation);
-        self
-    }
+	pub fn rotated_by(mut self, rotation: Quat) -> Self {
+		self.rotate_by(rotation);
+		self
+	}
 
-    /// Rotates the vertex positions of the mesh in place by the given [`Quat`].
-    pub fn rotate_by(&mut self, rotation: Quat) {
+	/// Rotates the vertex positions of the mesh in place by the given [`Quat`].
+	pub fn rotate_by(&mut self, rotation: Quat) {
 		for vert in self.vertices.iter_mut() {
 			vert.position = rotation * vert.position;
 		}
-    }
+	}
 
 	/// Scales the vertex positions, normals, and tangents of the mesh by the given [`Vec3`].
-    pub fn scaled_by(mut self, scale: Vec3) -> Self {
-        self.scale_by(scale);
-        self
-    }
+	pub fn scaled_by(mut self, scale: Vec3) -> Self {
+		self.scale_by(scale);
+		self
+	}
 
-    /// Scales the vertex positions, normals, and tangents of the mesh in place by the given [`Vec3`].
-    pub fn scale_by(&mut self, scale: Vec3) {
+	/// Scales the vertex positions, normals, and tangents of the mesh in place by the given [`Vec3`].
+	pub fn scale_by(&mut self, scale: Vec3) {
 		for vert in self.vertices.iter_mut() {
 			vert.position = scale * vert.position;
 		}
-    }
+	}
 }
 
 /// A private struct that only stores meshes size.

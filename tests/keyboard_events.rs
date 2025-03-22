@@ -1,6 +1,5 @@
 use bevy_app::*;
 use bevy_ecs::{event::EventReader, system::ResMut};
-use bevy_input::keyboard::{Key, KeyCode, KeyboardInput};
 use quadify::prelude::*;
 
 #[test]
@@ -15,30 +14,31 @@ fn main() {
 			..Default::default()
 		}))
 		.add_systems(Startup, || println!("TIP: press ESC to quit the test!"))
-		.add_systems(Update, (keyboard_events, exit_on_esc))
+		.add_systems(Update, (keycode_events, exit_on_esc, char_events))
 		.run();
 }
 
-fn keyboard_events(mut events: EventReader<KeyboardInput>, mut window_properties: ResMut<WindowProperties>) {
-	for event in events.read() {
-		if event.state.is_pressed() {
-			match event.key_code {
-				KeyCode::KeyF => {
-					window_properties.fullscreen = !window_properties.fullscreen;
-					if window_properties.fullscreen {
-						window_properties.width = 600;
-						window_properties.height = 600;
-					}
-				}
-				KeyCode::KeyR => window_properties.cursor_grabbed = !window_properties.cursor_grabbed,
-				_ => println!("Some other keycode"),
-			}
+fn keycode_events(mut events: EventReader<KeyCodeEvent>, mut window: ResMut<WindowProperties>, mut cursor: ResMut<CursorProperties>) {
+	for event in events.read().filter(|ev| !ev.released) {
+		match event.keycode {
+			miniquad::KeyCode::F => {
+				window.fullscreen = !window.fullscreen;
 
-			if let Key::Character(ref char) = event.logical_key {
-				if let Some(x) = char.parse::<u32>().ok() {
-					window_properties.position = Some(glam::u32::UVec2::new(x * 100, 80));
+				if !window.fullscreen {
+					window.width = 600;
+					window.height = 600;
 				}
 			}
+			miniquad::KeyCode::R => cursor.grabbed = !cursor.grabbed,
+			_ => {}
+		}
+	}
+}
+
+fn char_events(mut events: EventReader<KeyCharEvent>, mut window: ResMut<WindowProperties>) {
+	for event in events.read() {
+		if let Some(x) = event.character.to_digit(10) {
+			window.position = Some(glam::u32::UVec2::new(x * 100, 80));
 		}
 	}
 }

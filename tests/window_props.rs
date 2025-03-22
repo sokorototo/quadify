@@ -36,6 +36,6 @@ fn set_clear_colour(mut clear_colour: ResMut<ClearColor>) {
 
 fn read_events(mut events: EventReader<WindowEvent>, tick: Res<bevy_time::Time>) {
 	for event in events.read() {
-		println!("[{}], {:?}", tick.elapsed_seconds(), event)
+		println!("[{}], {:?}", tick.elapsed_secs(), event)
 	}
 }

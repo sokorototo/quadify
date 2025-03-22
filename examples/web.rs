@@ -1,6 +1,6 @@
 use bevy_app::prelude::*;
 use bevy_ecs::prelude::*;
-use bevy_input::{keyboard::KeyboardInput, mouse::MouseButtonInput, prelude::*, ButtonState};
+use miniquad::*;
 use quadify::prelude::*;
 
 fn main() {
@@ -17,26 +17,25 @@ fn main() {
 		.run();
 }
 
-fn read_keyboard(mut keyboard_events: EventReader<KeyboardInput>, mut window_properties: ResMut<WindowProperties>) {
+fn read_keyboard(mut keyboard_events: EventReader<KeyCodeEvent>, mut window_properties: ResMut<WindowProperties>) {
 	for event in keyboard_events.read() {
-		if event.state == ButtonState::Released {
-			let width = match event.key_code {
+		if event.released {
+			let width = match event.keycode {
 				KeyCode::Space => {
 					#[cfg(feature = "log")]
 					bevy_log::info!("Current Mouse Position: {:?}", window_properties.cursor_position());
 					None
 				}
-				// TODO: input lag! we need to rework miniquad to some degree
-				KeyCode::Digit0 => Some(0),
-				KeyCode::Digit1 => Some(1),
-				KeyCode::Digit2 => Some(2),
-				KeyCode::Digit3 => Some(3),
-				KeyCode::Digit4 => Some(4),
-				KeyCode::Digit5 => Some(5),
-				KeyCode::Digit6 => Some(6),
-				KeyCode::Digit7 => Some(7),
-				KeyCode::Digit8 => Some(8),
-				KeyCode::Digit9 => Some(9),
+				KeyCode::Key0 => Some(0),
+				KeyCode::Key1 => Some(1),
+				KeyCode::Key2 => Some(2),
+				KeyCode::Key3 => Some(3),
+				KeyCode::Key4 => Some(4),
+				KeyCode::Key5 => Some(5),
+				KeyCode::Key6 => Some(6),
+				KeyCode::Key7 => Some(7),
+				KeyCode::Key8 => Some(8),
+				KeyCode::Key9 => Some(9),
 				_ => None,
 			};
 
@@ -53,7 +52,7 @@ fn file_drop_events(mut events: EventReader<DroppedFileEvent>) {
 	}
 }
 
-fn mouse_events(mut events: EventReader<MouseButtonInput>, mut idx: Local<usize>, mut clear_colour: ResMut<ClearColor>, mut window_properties: ResMut<WindowProperties>) {
+fn mouse_events(mut idx: Local<usize>, mut events: EventReader<MouseButtonEvent>, mut clear_colour: ResMut<ClearColor>, window: Res<WindowProperties>, mut cursor: ResMut<CursorProperties>) {
 	static CURSORS: [CursorIcon; 8] = [
 		CursorIcon::Default,
 		CursorIcon::Crosshair,
@@ -66,25 +65,25 @@ fn mouse_events(mut events: EventReader<MouseButtonInput>, mut idx: Local<usize>
 	];
 
 	for event in events.read() {
-		if event.state != ButtonState::Released {
+		if !event.released {
 			continue;
 		}
 
 		match event.button {
 			MouseButton::Right => {
-				let glam::Vec2 { x, y } = window_properties.cursor_position();
+				let glam::Vec2 { x, y } = cursor.position;
 
-				let r = (x / window_properties.height as f32) * 255.0;
-				let g = (y / window_properties.width as f32) * 255.0;
+				let r = (x / window.height as f32) * 255.0;
+				let g = (y / window.width as f32) * 255.0;
 
 				clear_colour.0 = rgba::rgba(r as u8, g as u8, 128, 255);
 			}
 			MouseButton::Left => {
-				window_properties.cursor_grabbed = !window_properties.cursor_grabbed;
+				cursor.grabbed = !cursor.grabbed;
 			}
 			MouseButton::Middle => {
 				*idx = (*idx + 1) % CURSORS.len();
-				window_properties.cursor = CURSORS[*idx % CURSORS.len()];
+				cursor.icon = CURSORS[*idx % CURSORS.len()];
 			}
 			_ => {}
 		}

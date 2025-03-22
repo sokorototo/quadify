@@ -69,9 +69,9 @@ impl<'w, 's> AssetIO<'w, 's> {
 
 		match material {
 			Ok(m) => Some(m),
-			Err(err) => {
+			Err(_err) => {
 				#[cfg(feature = "log")]
-				bevy_log::error!("{:?}", err);
+				bevy_log::error!("{:?}", _err);
 				None
 			}
 		}

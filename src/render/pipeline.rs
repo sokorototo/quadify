@@ -174,13 +174,7 @@ impl PipelineStorage {
 	const LINES_DEPTH_PIPELINE: GlPipeline = GlPipeline(3);
 
 	pub(crate) fn new(ctx: &mut dyn RenderingBackend) -> PipelineStorage {
-		let source = match ctx.info().backend {
-			Backend::OpenGl => ShaderSource::Glsl {
-				vertex: shader::VERTEX,
-				fragment: shader::FRAGMENT,
-			},
-			Backend::Metal => ShaderSource::Msl { program: shader::METAL },
-		};
+		let source = ShaderSource::new(shader::VERTEX, shader::FRAGMENT);
 
 		let shader = ctx.new_shader(source, shader::meta()).unwrap();
 		let params = PipelineParams {
@@ -335,46 +329,6 @@ pub(crate) mod shader {
 	void main() {
 		gl_FragColor = color * texture2D(Texture, uv);
 	}"#;
-
-	pub const METAL: &str = r#"#include <metal_stdlib>
-	using namespace metal;
-
-	struct Uniforms
-	{
-		float4x4 Model;
-		float4x4 Projection;
-	};
-
-	struct Vertex
-	{
-		float3 position    [[attribute(0)]];
-		float2 texcoord    [[attribute(1)]];
-		float4 color0      [[attribute(2)]];
-	};
-
-	struct RasterizerData
-	{
-		float4 position [[position]];
-		float4 color [[user(locn0)]];
-		float2 uv [[user(locn1)]];
-	};
-
-	vertex RasterizerData vertexShader(Vertex v [[stage_in]], constant Uniforms& uniforms [[buffer(0)]])
-	{
-		RasterizerData out;
-
-		out.position = uniforms.Model * uniforms.Projection * float4(v.position, 1);
-		out.color = v.color0 / 255.0;
-		out.uv = v.texcoord;
-
-		return out;
-	}
-
-	fragment float4 fragmentShader(RasterizerData in [[stage_in]], texture2d<float> tex [[texture(0)]], sampler texSmplr [[sampler(0)]])
-	{
-		return in.color * tex.sample(texSmplr, in.uv);
-	}
-	"#;
 
 	pub fn uniforms() -> Vec<(&'static str, UniformType)> {
 		vec![("Projection", UniformType::Mat4), ("Model", UniformType::Mat4), ("_Time", UniformType::Float4)]

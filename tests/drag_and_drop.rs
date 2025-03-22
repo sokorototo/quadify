@@ -14,7 +14,7 @@ fn main() {
 			..Default::default()
 		}))
 		.add_systems(Update, file_drop_events)
-		.run()
+		.run();
 }
 
 fn file_drop_events(mut events: EventReader<DroppedFileEvent>) {

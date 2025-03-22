@@ -28,11 +28,11 @@ impl WindowIcon {
 
 		let reader = match format {
 			Some(f) => {
-				let mut reader = image::io::Reader::new(data);
+				let mut reader = image::ImageReader::new(data);
 				reader.set_format(f);
 				reader
 			}
-			None => image::io::Reader::new(data).with_guessed_format().map_err(fs::Error::IOError)?,
+			None => image::ImageReader::new(data).with_guessed_format().map_err(fs::Error::IOError)?,
 		};
 
 		let img = reader.decode().map_err(|_err| {

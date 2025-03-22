@@ -13,7 +13,7 @@ If you're doing simple web-games with 2D graphics - this might be suitable for y
 | feature name | description                   | reference (bevy)               |is required |status|
 | ---          | ---                           | ---                            | ---        | ---  |
 | quad_window  | Window management and events  | bevy_window                    | ❗        | ⚒️   |
-| quad_input   | Input types                   | bevy_input                     | ❗        | ⚒️   |
+| quad_input   | Input types                   | custom                     | ❗        | ⚒️   |
 | parallelism  | Support for parallelism       | None                           | ❗        | ❌   |
 | quad_render  | Basic rendering abstractions  | bevy_render/bevy_core_pipeline | ❔        | ❌   |
 | quad_asset   | Really basic asset management | bevy_asset                     | ❔        | ❌   |

@@ -30,16 +30,16 @@ impl Texture {
 	}
 }
 
-pub struct AssetPlugin;
+// pub struct AssetPlugin;
 
-impl Plugin for AssetPlugin {
-	fn build(&self, app: &mut bevy_app::App) {
-		app.add_plugins(BevyAssetPlugin::default())
-			.register_asset_reflect::<Mesh>()
-			.init_resource::<Assets<Mesh>>()
-			.register_asset_reflect::<Texture>()
-			.init_resource::<Assets<Texture>>()
-			.register_asset_reflect::<Material>()
-			.init_resource::<Assets<Material>>();
-	}
-}
+// impl Plugin for AssetPlugin {
+// 	fn build(&self, app: &mut bevy_app::App) {
+// 		app.add_plugins(BevyAssetPlugin::default())
+// 			.register_asset_reflect::<Mesh>()
+// 			.init_resource::<Assets<Mesh>>()
+// 			.register_asset_reflect::<Texture>()
+// 			.init_resource::<Assets<Texture>>()
+// 			.register_asset_reflect::<Material>()
+// 			.init_resource::<Assets<Material>>();
+// 	}
+// }

@@ -1,10 +1,10 @@
 /// Simplified import for all the crate's types and functions
 pub mod prelude {
 	pub use crate::io::*;
+	pub use crate::render::RenderBackendPlugin;
 	pub use crate::render::{camera::*, geometry::*, *};
 	pub use crate::window::{events::*, icon::*, state::*, *};
 	pub use crate::QuadifyPlugins;
-	pub use crate::render::RenderBackendPlugin;
 
 	pub use glam;
 	pub use miniquad;
@@ -30,8 +30,8 @@ impl PluginGroup for QuadifyPlugins {
 		#[allow(unused_mut)]
 		let mut builder = PluginGroupBuilder::start::<Self>()
 			.add(render::RenderBackendPlugin::default())
-			.add(window::WindowPlugin::default())
-			.add(asset::AssetPlugin);
+			// .add(asset::AssetPlugin)
+			.add(window::WindowPlugin::default());
 
 		#[cfg(feature = "log")]
 		{
