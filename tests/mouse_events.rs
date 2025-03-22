@@ -33,24 +33,24 @@ fn close_when_received_all(received: Res<InputReceived>, mut quit_events: EventW
 	}
 }
 
-fn mouse_btn_events(mbtn_events: EventReader<MouseButtonEvent>, mut received: ResMut<InputReceived>, mut is_done: Local<bool>) {
-	if !*is_done && !mbtn_events.is_empty() {
+fn mouse_btn_events(btn_events: EventReader<MouseButtonEvent>, mut received: ResMut<InputReceived>, mut is_done: Local<bool>) {
+	if !*is_done && !btn_events.is_empty() {
 		*is_done = true;
 		received.0 += 1;
 		println!("{}: Mouse button event received!", received.0);
 	}
 }
 
-fn mouse_motion_events(mmotion_events: EventReader<MouseMotionEvent>, mut received: ResMut<InputReceived>, mut is_done: Local<bool>) {
-	if !*is_done && !mmotion_events.is_empty() {
+fn mouse_motion_events(motion_events: EventReader<MouseMotionEvent>, mut received: ResMut<InputReceived>, mut is_done: Local<bool>) {
+	if !*is_done && !motion_events.is_empty() {
 		*is_done = true;
 		received.0 += 1;
 		println!("{}: Mouse motion event received!", received.0);
 	}
 }
 
-fn mouse_scroll_events(mscroll_events: EventReader<MouseWheelEvent>, mut received: ResMut<InputReceived>, mut is_done: Local<bool>) {
-	if !*is_done && !mscroll_events.is_empty() {
+fn mouse_scroll_events(scroll_events: EventReader<MouseWheelEvent>, mut received: ResMut<InputReceived>, mut is_done: Local<bool>) {
+	if !*is_done && !scroll_events.is_empty() {
 		*is_done = true;
 		received.0 += 1;
 		println!("{}: Mouse wheel event received!", received.0);

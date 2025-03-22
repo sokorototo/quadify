@@ -82,7 +82,7 @@ impl Plugin for WindowPlugin {
 			.add_event::<events::TouchEvent>()
 			.insert_resource(window_properties)
 			.insert_resource(cursor_properties)
-			.insert_resource(state::QuitRequested { accept: true })
+			.insert_resource(state::QuitRequested { accept: true, status: 0 })
 			.init_schedule(state::MiniquadPrepareDraw)
 			.edit_schedule(state::MiniquadPrepareDraw, |s| {
 				s.set_executor_kind(ExecutorKind::SingleThreaded);
@@ -107,8 +107,13 @@ impl Plugin for WindowPlugin {
 
 		// Init Runner
 		app.set_runner(move |app| {
-			miniquad::start(conf, move || Box::new(state::QuadifyState::new(app)));
-			AppExit::Success
+			let (sender, receiver) = oneshot::channel();
+
+			miniquad::start(conf, move || Box::new(state::QuadifyState::new(app, sender)));
+			match receiver.recv().unwrap() {
+				0 => AppExit::Success,
+				n => AppExit::Error(std::num::NonZeroU8::new(n).unwrap()),
+			}
 		});
 	}
 }

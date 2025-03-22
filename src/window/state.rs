@@ -1,6 +1,10 @@
 use bevy_app::*;
-use bevy_ecs::{change_detection::DetectChangesMut, schedule::ScheduleLabel, system::Resource};
-use glam::{vec2, Vec2};
+use bevy_ecs::{
+	change_detection::{DetectChanges, DetectChangesMut},
+	schedule::ScheduleLabel,
+	system::Resource,
+};
+use glam::vec2;
 
 use super::events;
 use crate::render::RenderingBackend;
@@ -8,14 +12,14 @@ use crate::render::RenderingBackend;
 /// General `miniquad` state handler for the entire app. It stores bevy's [`App`], manages its event loop and so on
 pub(crate) struct QuadifyState {
 	app: App,
-	mouse_position: Option<Vec2>,
+	sender: Option<oneshot::Sender<u8>>,
 }
 
 impl QuadifyState {
 	/// Creates a new `QuadifyState` object
-	pub(crate) fn new(mut app: App) -> Self {
+	pub(crate) fn new(mut app: App, sender: oneshot::Sender<u8>) -> Self {
 		app.insert_non_send_resource(RenderingBackend::new());
-		Self { app, mouse_position: None }
+		Self { app, sender: Some(sender) }
 	}
 }
 
@@ -43,11 +47,11 @@ pub struct MiniquadPrivilegedSchedule;
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, ScheduleLabel)]
 pub struct MiniquadQuitRequestedSchedule;
 
-/// Use this to cancel a `quit` request.
-/// `true` to quit, `false` to cancel
+/// The user is requesting to quit the application. `accept` can cancel the request, and status is the exit code
 #[derive(Debug, Resource)]
 pub struct QuitRequested {
 	pub accept: bool,
+	pub status: u8,
 }
 
 impl miniquad::EventHandler for QuadifyState {
@@ -106,24 +110,18 @@ impl miniquad::EventHandler for QuadifyState {
 		let world_mut = self.app.world_mut();
 
 		// x and y are the absolute mouse position, not the delta
+		let (first_run, previous) = world_mut.get_resource_ref::<events::CursorProperties>().map(|r| (r.is_added(), r.position)).unwrap();
 		let current = vec2(x, y);
-		let previous = self.mouse_position.get_or_insert(current);
 
-		// only send mouse motion events if the mouse has moved
-		if current != *previous {
-			let delta = vec2(x, y) - *previous;
-			world_mut.send_event(events::MouseMotionEvent { delta });
+		// only send mouse motion events if the mouse has moved and not start of application
+		if current != previous && !first_run {
+			world_mut.send_event(events::MouseMotionEvent { delta: current - previous });
 		}
 
 		// update MousePosition Resource
-		if let Some(mut position) = world_mut.get_resource_mut::<events::CursorProperties>() {
-			*position = events::CursorProperties {
-				position: current,
-				..position.clone()
-			};
-		};
+		let mut cursor = world_mut.get_resource_mut::<events::CursorProperties>().unwrap();
+		cursor.position = current;
 
-		self.mouse_position = Some(current);
 		world_mut.run_schedule(MiniquadPrivilegedSchedule);
 	}
 
@@ -187,6 +185,15 @@ impl miniquad::EventHandler for QuadifyState {
 	// App Quit
 	fn quit_requested_event(&mut self) -> bool {
 		self.app.world_mut().run_schedule(MiniquadQuitRequestedSchedule);
-		self.app.world_mut().resource::<QuitRequested>().accept
+
+		// extract results from schedule
+		let quit = self.app.world_mut().resource::<QuitRequested>();
+		if quit.accept {
+			if let Some(s) = self.sender.take() {
+				s.send(quit.status).unwrap();
+			}
+		}
+
+		quit.accept
 	}
 }

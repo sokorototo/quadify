@@ -40,5 +40,6 @@ fn toggle_exit(mut first_run: Local<bool>, mut exit_request: ResMut<QuitRequeste
 	} else {
 		println!("[{}] Permitting Exit", tick.elapsed_secs());
 		exit_request.accept = true;
+		exit_request.status = 1;
 	}
 }

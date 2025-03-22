@@ -77,6 +77,7 @@ pub(crate) fn apply_cursor_properties(mut previous: Local<Option<CursorPropertie
 		if previous.as_ref().map_or(true, |p| p.icon != properties.icon) {
 			miniquad::window::set_mouse_cursor(properties.icon);
 		}
+
 		if previous.as_ref().map_or(true, |p| p.grabbed != properties.grabbed) {
 			miniquad::window::set_cursor_grab(properties.grabbed);
 		}
