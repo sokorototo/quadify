@@ -27,11 +27,10 @@ pub struct QuadifyPlugins;
 
 impl PluginGroup for QuadifyPlugins {
 	fn build(self) -> PluginGroupBuilder {
+		// TODO: Minimal async-runtime,get rendering working, simple asset system and audio
+
 		#[allow(unused_mut)]
-		let mut builder = PluginGroupBuilder::start::<Self>()
-			.add(render::RenderBackendPlugin::default())
-			// .add(asset::AssetPlugin)
-			.add(window::WindowPlugin::default());
+		let mut builder = PluginGroupBuilder::start::<Self>().add(render::RenderBackendPlugin::default()).add(window::WindowPlugin::default());
 
 		#[cfg(feature = "log")]
 		{

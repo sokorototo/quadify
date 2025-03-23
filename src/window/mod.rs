@@ -71,6 +71,8 @@ impl Plugin for WindowPlugin {
 			icon: miniquad::CursorIcon::Default,
 		};
 
+		// TODO: Split int Event, Schedules and Window plugins
+
 		// Init Resources, Events, and Systems
 		app.add_event::<events::WindowEvent>()
 			.add_event::<events::DroppedFileEvent>()
@@ -107,13 +109,8 @@ impl Plugin for WindowPlugin {
 
 		// Init Runner
 		app.set_runner(move |app| {
-			let (sender, receiver) = oneshot::channel();
-
-			miniquad::start(conf, move || Box::new(state::QuadifyState::new(app, sender)));
-			match receiver.recv().unwrap() {
-				0 => AppExit::Success,
-				n => AppExit::Error(std::num::NonZeroU8::new(n).unwrap()),
-			}
+			miniquad::start(conf, move || Box::new(state::QuadifyState::new(app)));
+			AppExit::Success
 		});
 	}
 }

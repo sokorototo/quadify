@@ -13,6 +13,13 @@ fn main() {
 			resizeable: false,
 			..Default::default()
 		}))
+		.add_systems(Startup, || {
+			#[cfg(target_arch = "wasm32")]
+			wasm_bindgen_futures::spawn_local(async move {
+				let string = load_string("index.html").await;
+				bevy_log::info!("Loaded index.html: {:?}", string.map(|_| ()));
+			});
+		})
 		.add_systems(Update, (read_keyboard, exit_on_esc, file_drop_events, mouse_events))
 		.run();
 }
@@ -21,11 +28,6 @@ fn read_keyboard(mut keyboard_events: EventReader<KeyCodeEvent>, mut window_prop
 	for event in keyboard_events.read() {
 		if event.released {
 			let width = match event.keycode {
-				KeyCode::Space => {
-					#[cfg(feature = "log")]
-					bevy_log::info!("Current Mouse Position: {:?}", window_properties.cursor_position());
-					None
-				}
 				KeyCode::Key0 => Some(0),
 				KeyCode::Key1 => Some(1),
 				KeyCode::Key2 => Some(2),
@@ -46,9 +48,8 @@ fn read_keyboard(mut keyboard_events: EventReader<KeyCodeEvent>, mut window_prop
 
 fn file_drop_events(mut events: EventReader<DroppedFileEvent>) {
 	for event in events.read() {
-		let _string = event.bytes.as_ref().map(|d| String::from_utf8_lossy(d));
-		#[cfg(feature = "log")]
-		bevy_log::info!("File {:?} Dropped into Application: {:?}", event.path, _string);
+		let string = event.bytes.as_ref().map(|d| String::from_utf8_lossy(d));
+		bevy_log::info!("File {:?} Dropped into Application: {:?}", event.path, string);
 	}
 }
 

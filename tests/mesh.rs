@@ -55,7 +55,7 @@ fn change_on_click(mut mesh: ResMut<MeshHandle>, mut click: EventReader<MouseBut
 			mesh.parts_count = ((mesh.parts_count + 1) % 64).max(4);
 			#[rustfmt::skip]
 			meshes.insert(
-				&mesh.mesh, 
+				&mesh.mesh,
 				MeshBuilder::default()
 					.as_circle(0.2)
 					.circle_points(mesh.parts_count)
